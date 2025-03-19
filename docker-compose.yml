@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  database:
+    image: mysql:5.7
+    container_name: database
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: qwerty
+      MYSQL_DATABASE: forms
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysqldata:/var/lib/mysql
+    networks:
+      - health
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+  flask_app:
+    build: .
+    container_name: health
+    restart: always
+    environment:
+      MYSQL_HOST: database
+      MYSQL_USER: root
+      MYSQL_PASSWORD: qwerty
+      MYSQL_DATABASE: forms
+    ports:
+      - "8000:8000"
+    networks:
+      - health
+    depends_on:
+      database:
+        condition: service_healthy
+
+networks:
+  health:
+
+volumes:
+  mysqldata:
